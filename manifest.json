@@ -1,8 +1,8 @@
 {
 	"id": "checklist-progress-tracks",
 	"name": "Checklist Progress Tracks",
-	"version": "1.0.0",
-	"minAppVersion": "1.4.0",
+	"version": "1.0.1",
+	"minAppVersion": "1.7.2",
 	"description": "Turns tagged checkboxes under headings into visual multi-track progress bars, for any project or checklist. Add a \"<Label>: [!progress_bar]\" line and it renders live. Custom track tags and a skip tag are configurable in settings.",
 	"author": "noveliopi",
 	"authorUrl": "https://github.com/noveliopi",

@@ -1,6 +1,6 @@
 {
   "name": "checklist-progress-tracks",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Turns tagged checkboxes under headings into visual multi-track progress bars for Obsidian.",
   "main": "main.js",
   "scripts": {

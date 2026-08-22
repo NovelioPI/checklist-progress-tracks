@@ -20,7 +20,7 @@ export default class ChecklistProgressPlugin extends Plugin {
 		);
 
 		this.addRibbonIcon("gauge", "Open checklist progress dashboard", () => {
-			this.activateDashboard();
+			void this.activateDashboard();
 		});
 
 		this.addCommand({
@@ -40,19 +40,18 @@ export default class ChecklistProgressPlugin extends Plugin {
 	async activateDashboard(): Promise<void> {
 		const existing = this.app.workspace.getLeavesOfType(CHECKLIST_DASHBOARD_VIEW_TYPE);
 		if (existing.length > 0) {
-			this.app.workspace.revealLeaf(existing[0]);
+			await this.app.workspace.revealLeaf(existing[0]);
 			return;
 		}
 		const leaf = this.app.workspace.getRightLeaf(false);
 		if (!leaf) return;
 		await leaf.setViewState({ type: CHECKLIST_DASHBOARD_VIEW_TYPE, active: true });
-		this.app.workspace.revealLeaf(leaf);
+		await this.app.workspace.revealLeaf(leaf);
 	}
 
 	async loadSettings(): Promise<void> {
-		const loaded = await this.loadData();
+		const loaded = (await this.loadData()) as Partial<ChecklistProgressSettings> | null;
 		this.settings = Object.assign({}, DEFAULT_SETTINGS, loaded);
-		// Deep-clone the default tracks array so multiple vaults don't share references.
 		if (!loaded || !loaded.tracks) {
 			this.settings.tracks = DEFAULT_SETTINGS.tracks.map((t) => ({ ...t }));
 		}

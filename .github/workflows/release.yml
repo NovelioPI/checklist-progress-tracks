@@ -33,9 +33,14 @@ jobs:
             styles.css
 
       - run: |
+          NOTES="Turns tagged checkboxes under headings into visual multi-track progress bars for Obsidian.
+
+          main.js and styles.css are built by this workflow and carry verifiable build provenance attestations (Sigstore/SLSA). See the tag message below for what changed in this release."
+
           gh release create "${GITHUB_REF_NAME}" \
             main.js manifest.json styles.css \
             --title "${GITHUB_REF_NAME}" \
+            --notes "$NOTES" \
             --generate-notes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -63,7 +63,7 @@ export class ChecklistDashboardView extends ItemView {
 		const header = container.createDiv({ cls: "cpt-dashboard-header" });
 		header.createEl("h3", { text: "Checklist progress dashboard" });
 		const refreshBtn = header.createEl("button", { text: "Refresh" });
-		refreshBtn.addEventListener("click", () => this.refresh());
+		refreshBtn.addEventListener("click", () => void this.refresh());
 
 		const data = await this.collectVaultProgress();
 
@@ -83,7 +83,7 @@ export class ChecklistDashboardView extends ItemView {
 			link.addEventListener("click", (evt) => {
 				evt.preventDefault();
 				const file = this.app.vault.getAbstractFileByPath(fp.path);
-				if (file instanceof TFile) this.app.workspace.getLeaf(false).openFile(file);
+				if (file instanceof TFile) void this.app.workspace.getLeaf(false).openFile(file);
 			});
 
 			for (const sec of fp.sections) {

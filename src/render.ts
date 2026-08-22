@@ -25,7 +25,7 @@ export function buildBarRow(
 	colorIndex: number,
 	options: BarOptions = DEFAULT_BAR_OPTIONS
 ): HTMLElement {
-	const row = document.createElement("div");
+	const row = createDiv();
 	row.addClass("cpt-row");
 	row.style.setProperty("--cpt-color", options.color ?? colorForTrackIndex(colorIndex));
 
@@ -61,7 +61,7 @@ export function buildBarRow(
 
 /** Build one row per placeholder, honoring each one's own options. */
 export function buildBarGroup(bars: BarSpec[]): HTMLElement {
-	const wrap = document.createElement("div");
+	const wrap = createDiv();
 	wrap.addClass("cpt-group");
 	for (const bar of bars) {
 		wrap.appendChild(buildBarRow(bar.count, bar.colorIndex, bar.options));
