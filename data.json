@@ -1,0 +1,8 @@
+{
+	"defaultTrackLabel": "Individu",
+	"tracks": [
+		{ "label": "Calon", "tag": "cp" }
+	],
+	"skipTag": "skip",
+	"barSegments": 20
+}

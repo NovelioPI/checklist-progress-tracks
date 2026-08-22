@@ -1,0 +1,104 @@
+.cpt-group {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	margin: 0.4em 0;
+}
+
+.cpt-row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	line-height: 1.6;
+}
+
+.cpt-label {
+	flex: 0 0 auto;
+	min-width: 7em;
+	font-weight: 600;
+	font-size: 0.9em;
+}
+
+.cpt-track {
+	position: relative;
+	flex: 1 1 auto;
+	height: 10px;
+	border-radius: 6px;
+	background: var(--background-modifier-border);
+	overflow: hidden;
+}
+
+.cpt-fill {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	border-radius: 6px;
+	transition: width 0.2s ease;
+}
+
+.cpt-stat {
+	flex: 0 0 auto;
+	min-width: 6em;
+	text-align: right;
+	font-size: 0.85em;
+	color: var(--text-muted);
+	font-variant-numeric: tabular-nums;
+}
+
+.cpt-live-preview,
+.cpt-reading {
+	margin: 0.3em 0;
+	padding: 2px 0;
+}
+
+/* Settings tab */
+.cpt-track-row .setting-item-control {
+	gap: 6px;
+}
+
+/* Dashboard view */
+.cpt-dashboard-container {
+	padding: 8px 12px;
+}
+
+.cpt-dashboard-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 0.5em;
+}
+
+.cpt-dashboard-header h3 {
+	margin: 0;
+}
+
+.cpt-dashboard-file {
+	margin-bottom: 1.2em;
+	padding-bottom: 0.8em;
+	border-bottom: 1px solid var(--background-modifier-border);
+}
+
+.cpt-dashboard-file-title {
+	margin: 0 0 0.3em 0;
+}
+
+.cpt-dashboard-file-title a {
+	cursor: pointer;
+}
+
+.cpt-dashboard-section {
+	margin: 0.4em 0 0.6em 0;
+}
+
+.cpt-dashboard-section-name {
+	font-size: 0.85em;
+	text-transform: uppercase;
+	letter-spacing: 0.02em;
+	color: var(--text-muted);
+	margin-bottom: 2px;
+}
+
+.cpt-dashboard-empty {
+	color: var(--text-muted);
+}
