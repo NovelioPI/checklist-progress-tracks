@@ -26,7 +26,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 			.setName("Default track label")
 			.setDesc(
 				"Checkboxes with no recognized #tag count toward this track. Must match a placeholder " +
-					"label in your notes exactly (e.g. \"Individu\")."
+					"label in your notes exactly (e.g. \"Jane\")."
 			)
 			.addText((text) =>
 				text
@@ -70,7 +70,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 				)
 				.addText((text) =>
 					text
-						.setPlaceholder("tag (e.g. cp)")
+						.setPlaceholder("tag (e.g. group)")
 						.setValue(track.tag)
 						.onChange(async (value) => {
 							track.tag = value.replace(/^#/, "").trim();

@@ -1,6 +1,6 @@
-import { TrackCount, percentOf } from "./core";
+import { BarOptions, BarSpec, DEFAULT_BAR_OPTIONS, TrackCount, percentOf, statText } from "./core";
 
-/** Deterministic-ish color per track index, using theme-aware CSS vars where possible. */
+/** Deterministic color per track slot, using theme-aware CSS vars where possible. */
 const TRACK_COLOR_VARS = [
 	"var(--interactive-accent)",
 	"var(--color-orange, var(--text-warning))",
@@ -13,31 +13,58 @@ export function colorForTrackIndex(i: number): string {
 	return TRACK_COLOR_VARS[i % TRACK_COLOR_VARS.length];
 }
 
-/** Build a single "<Label> [bar] 63% (12/19)" row as a DOM element. */
-export function buildBarRow(track: TrackCount, colorIndex: number): HTMLElement {
+/**
+ * Build a single "<Label> [bar] 63% (12/19)" row as a DOM element.
+ *
+ * Presentational values are passed as CSS custom properties rather than
+ * hardcoded style declarations, so themes and snippets can still override
+ * everything from styles.css.
+ */
+export function buildBarRow(
+	track: TrackCount,
+	colorIndex: number,
+	options: BarOptions = DEFAULT_BAR_OPTIONS
+): HTMLElement {
 	const row = document.createElement("div");
 	row.addClass("cpt-row");
+	row.style.setProperty("--cpt-color", options.color ?? colorForTrackIndex(colorIndex));
 
-	const label = row.createSpan({ cls: "cpt-label", text: track.label + ":" });
-	label.style.color = colorForTrackIndex(colorIndex);
+	row.createSpan({ cls: "cpt-label", text: track.label + ":" });
 
-	const track_el = row.createDiv({ cls: "cpt-track" });
-	const fill = track_el.createDiv({ cls: "cpt-fill" });
-	const pct = track.total === 0 ? 0 : percentOf(track.checked, track.total);
-	fill.style.width = pct + "%";
-	fill.style.background = colorForTrackIndex(colorIndex);
+	const pct = percentOf(track.checked, track.total);
+	const stat = statText(track, options.format);
 
-	const stat = row.createSpan({ cls: "cpt-stat" });
-	stat.setText(
-		track.total === 0 ? "n/a" : `${pct}% (${track.checked}/${track.total})`
-	);
+	const trackEl = row.createDiv({ cls: "cpt-track" });
+	trackEl.setAttrs({
+		role: "progressbar",
+		"aria-valuemin": "0",
+		"aria-valuemax": "100",
+		"aria-valuenow": String(track.total === 0 ? 0 : pct),
+		"aria-valuetext": stat,
+		"aria-label": track.label,
+	});
+
+	const fill = trackEl.createDiv({ cls: "cpt-fill" });
+	fill.style.setProperty("--cpt-pct", pct + "%");
+
+	if (options.goal !== null) {
+		const marker = trackEl.createDiv({ cls: "cpt-goal" });
+		marker.style.setProperty("--cpt-goal", options.goal + "%");
+		marker.setAttr("aria-hidden", "true");
+		if (track.total > 0 && pct >= options.goal) row.addClass("cpt-goal-met");
+	}
+
+	row.createSpan({ cls: "cpt-stat", text: stat });
 
 	return row;
 }
 
-export function buildBarGroup(tracks: TrackCount[]): HTMLElement {
+/** Build one row per placeholder, honoring each one's own options. */
+export function buildBarGroup(bars: BarSpec[]): HTMLElement {
 	const wrap = document.createElement("div");
 	wrap.addClass("cpt-group");
-	tracks.forEach((t, i) => wrap.appendChild(buildBarRow(t, i)));
+	for (const bar of bars) {
+		wrap.appendChild(buildBarRow(bar.count, bar.colorIndex, bar.options));
+	}
 	return wrap;
 }

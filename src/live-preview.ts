@@ -2,25 +2,27 @@ import { EditorState, Extension, RangeSetBuilder, StateField, Transaction } from
 import { Decoration, DecorationSet, EditorView, WidgetType } from "@codemirror/view";
 import { editorLivePreviewField } from "obsidian";
 import type ChecklistProgressPlugin from "./main";
-import { isPlaceholderLine, parseFile, SectionProgress, TrackCount } from "./core";
+import { BarSpec, parseFile } from "./core";
 import { buildBarRow } from "./render";
 
 class ProgressBarWidget extends WidgetType {
-	constructor(private track: TrackCount, private colorIndex: number, private raw: string) {
+	constructor(private spec: BarSpec, private raw: string) {
 		super();
 	}
 
 	eq(other: ProgressBarWidget): boolean {
+		// The raw line determines the label and every option, so counts are all
+		// that still need comparing.
 		return (
 			other.raw === this.raw &&
-			other.track.checked === this.track.checked &&
-			other.track.total === this.track.total &&
-			other.track.label === this.track.label
+			other.spec.count.checked === this.spec.count.checked &&
+			other.spec.count.total === this.spec.count.total &&
+			other.spec.colorIndex === this.spec.colorIndex
 		);
 	}
 
 	toDOM(): HTMLElement {
-		const el = buildBarRow(this.track, this.colorIndex);
+		const el = buildBarRow(this.spec.count, this.spec.colorIndex, this.spec.options);
 		el.addClass("cpt-live-preview");
 		return el;
 	}
@@ -44,27 +46,27 @@ export function buildLivePreviewExtension(plugin: ChecklistProgressPlugin): Exte
 
 		const doc = state.doc;
 		const fullText = doc.toString();
-		const sections = parseFile(fullText, plugin.settings);
-		const selection = state.selection.main;
-		const cursorLine = doc.lineAt(selection.head).number; // 1-based
+		if (!fullText.includes("[!progress_bar")) return Decoration.none;
+
+		const barsByLine = new Map<number, BarSpec>();
+		for (const sec of parseFile(fullText, plugin.settings)) {
+			for (const bar of sec.bars) barsByLine.set(bar.line, bar);
+		}
+		if (barsByLine.size === 0) return Decoration.none;
+
+		const cursorLine = doc.lineAt(state.selection.main.head).number; // 1-based
 
 		const builder = new RangeSetBuilder<Decoration>();
-		for (let i = 1; i <= doc.lines; i++) {
-			const line = doc.line(i);
-			const ph = isPlaceholderLine(line.text);
-			if (!ph) continue;
-			if (i === cursorLine) continue; // let the user edit the raw line while their cursor is there
+		for (const lineIndex of Array.from(barsByLine.keys()).sort((a, b) => a - b)) {
+			const lineNumber = lineIndex + 1; // barsByLine keys are 0-based
+			if (lineNumber === cursorLine) continue; // let the user edit the raw line
+			if (lineNumber > doc.lines) continue;
 
-			// Find the enclosing section (last section header at/before this line).
-			let sec: SectionProgress | null = null;
-			for (const s of sections) {
-				if (s.line <= i - 1) sec = s; // s.line is 0-based
-			}
-			if (!sec) continue;
-			const idx = sec.tracks.findIndex((t) => t.label === ph.label);
-			if (idx === -1) continue;
+			const line = doc.line(lineNumber);
+			const spec = barsByLine.get(lineIndex);
+			if (!spec) continue;
 
-			const widget = new ProgressBarWidget(sec.tracks[idx], idx, line.text);
+			const widget = new ProgressBarWidget(spec, line.text);
 			builder.add(line.from, line.to, Decoration.replace({ widget, block: false }));
 		}
 		return builder.finish();

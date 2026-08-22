@@ -12,11 +12,23 @@
 	line-height: 1.6;
 }
 
+/*
+ * Per-bar values arrive as custom properties set by render.ts:
+ *   --cpt-color  track color (or the "color=" placeholder option)
+ *   --cpt-pct    fill width
+ *   --cpt-goal   position of the target marker, when "goal=" is set
+ * Overriding any of these in a theme or snippet restyles the bars.
+ */
+.cpt-row {
+	--cpt-color: var(--interactive-accent);
+}
+
 .cpt-label {
 	flex: 0 0 auto;
 	min-width: 7em;
 	font-weight: 600;
 	font-size: 0.9em;
+	color: var(--cpt-color);
 }
 
 .cpt-track {
@@ -33,8 +45,25 @@
 	top: 0;
 	left: 0;
 	height: 100%;
+	width: var(--cpt-pct, 0%);
+	background: var(--cpt-color);
 	border-radius: 6px;
 	transition: width 0.2s ease;
+}
+
+.cpt-goal {
+	position: absolute;
+	top: 0;
+	left: var(--cpt-goal, 100%);
+	width: 2px;
+	height: 100%;
+	margin-left: -1px;
+	background: var(--text-normal);
+	opacity: 0.45;
+}
+
+.cpt-goal-met .cpt-goal {
+	opacity: 0.15;
 }
 
 .cpt-stat {
@@ -44,6 +73,16 @@
 	font-size: 0.85em;
 	color: var(--text-muted);
 	font-variant-numeric: tabular-nums;
+}
+
+.cpt-goal-met .cpt-stat {
+	color: var(--text-success);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.cpt-fill {
+		transition: none;
+	}
 }
 
 .cpt-live-preview,

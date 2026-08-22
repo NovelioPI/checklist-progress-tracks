@@ -1,6 +1,6 @@
-import { ItemView, WorkspaceLeaf, TFile, MarkdownRenderer } from "obsidian";
+import { ItemView, WorkspaceLeaf, TFile } from "obsidian";
 import type ChecklistProgressPlugin from "./main";
-import { parseFile, FileProgress } from "./core";
+import { parseFile, specsForSection, FileProgress } from "./core";
 import { buildBarGroup } from "./render";
 
 export const CHECKLIST_DASHBOARD_VIEW_TYPE = "checklist-progress-tracks-dashboard";
@@ -87,10 +87,11 @@ export class ChecklistDashboardView extends ItemView {
 			});
 
 			for (const sec of fp.sections) {
-				if (sec.tracks.length === 0) continue;
+				const specs = specsForSection(sec, this.plugin.settings);
+				if (specs.length === 0) continue;
 				const secBlock = fileBlock.createDiv({ cls: "cpt-dashboard-section" });
 				secBlock.createEl("div", { cls: "cpt-dashboard-section-name", text: sec.name });
-				secBlock.appendChild(buildBarGroup(sec.tracks));
+				secBlock.appendChild(buildBarGroup(specs));
 			}
 		}
 	}
