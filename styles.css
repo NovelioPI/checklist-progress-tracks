@@ -96,6 +96,12 @@
 	gap: 6px;
 }
 
+.cpt-settings-warning {
+	color: var(--text-warning, var(--text-error));
+	font-size: var(--font-ui-small);
+	margin: 0.2em 0;
+}
+
 /* Dashboard view */
 .cpt-dashboard-container {
 	padding: 8px 12px;

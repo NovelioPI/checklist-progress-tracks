@@ -46,7 +46,7 @@ export class ChecklistDashboardView extends ItemView {
 		const out: FileProgress[] = [];
 		for (const file of files) {
 			const content = await this.app.vault.cachedRead(file);
-			if (!content.includes("[!progress_bar]")) continue;
+			if (!content.includes("[!progress_bar")) continue;
 			const sections = parseFile(content, this.plugin.settings);
 			if (sections.some((s) => s.tracks.length > 0)) {
 				out.push({ path: file.path, sections });

@@ -97,6 +97,8 @@ export interface FileProgress {
 // not tied to a specific level, so this works with whatever heading structure a
 // note already uses.
 const SECTION_RE = /^(#{1,6})\s+(.+?)\s*$/;
+// Fenced code block delimiter (``` or ~~~).
+const FENCE_RE = /^ {0,3}(`{3,}|~{3,})/;
 const CHECKBOX_RE = /^(\s*-\s\[)([ xX])(\]\s*)(.*)$/;
 // Matches a placeholder line like "Label: [!progress_bar]", optionally followed
 // by a space-separated argument list ("[!progress_bar rollup goal=80]"). This
@@ -131,6 +133,30 @@ function escapeRegExp(s: string): string {
 
 function tagRegex(tag: string): RegExp {
 	return new RegExp("#" + escapeRegExp(tag) + "(?:\\b|$)", "i");
+}
+
+/** Marks lines inside fenced code blocks, so headings/checkboxes there are ignored. */
+function computeFenceMask(lines: string[]): boolean[] {
+	const mask = new Array<boolean>(lines.length).fill(false);
+	let fenceChar: string | null = null;
+	let fenceLen = 0;
+	for (let i = 0; i < lines.length; i++) {
+		const m = FENCE_RE.exec(lines[i]);
+		if (fenceChar === null) {
+			if (m) {
+				fenceChar = m[1][0];
+				fenceLen = m[1].length;
+				mask[i] = true;
+			}
+			continue;
+		}
+		mask[i] = true;
+		if (m && m[1][0] === fenceChar && m[1].length >= fenceLen) {
+			fenceChar = null;
+			fenceLen = 0;
+		}
+	}
+	return mask;
 }
 
 /**
@@ -204,10 +230,11 @@ interface RawSection {
  * the "rollup" placeholder option, so a parent heading can total up everything
  * beneath it without changing the default scoping.
  */
-function findSections(lines: string[]): RawSection[] {
+function findSections(lines: string[], inFence: boolean[]): RawSection[] {
 	const sections: RawSection[] = [];
 	let current: RawSection | null = null;
 	for (let i = 0; i < lines.length; i++) {
+		if (inFence[i]) continue;
 		const m = SECTION_RE.exec(lines[i]);
 		if (m) {
 			if (current) {
@@ -242,6 +269,45 @@ function findSections(lines: string[]): RawSection[] {
 	return sections;
 }
 
+/** Flags duplicate/colliding track tags and labels in settings. */
+export function getTrackConfigWarnings(settings: ChecklistProgressSettings): string[] {
+	const warnings: string[] = [];
+	const seenTags = new Map<string, string>();
+	const seenLabels = new Map<string, string>();
+
+	if (settings.skipTag.trim()) {
+		seenTags.set(settings.skipTag.trim().toLowerCase(), "the skip tag");
+	}
+
+	for (const t of settings.tracks) {
+		const tag = t.tag.trim().toLowerCase();
+		const label = t.label.trim().toLowerCase();
+
+		if (tag) {
+			const claimedBy = seenTags.get(tag);
+			if (claimedBy) {
+				warnings.push(`Tag "#${t.tag}" on "${t.label}" is already used by ${claimedBy} -- it will never match.`);
+			} else {
+				seenTags.set(tag, `"${t.label}"`);
+			}
+		}
+
+		if (label) {
+			const claimedBy = seenLabels.get(label);
+			if (claimedBy) {
+				warnings.push(`Label "${t.label}" is used by more than one track (${claimedBy} and "#${t.tag}") -- their counts will merge.`);
+			} else {
+				seenLabels.set(label, `"#${t.tag}"`);
+			}
+			if (label === settings.defaultTrackLabel.trim().toLowerCase()) {
+				warnings.push(`Label "${t.label}" matches the default track label -- their counts will merge.`);
+			}
+		}
+	}
+
+	return warnings;
+}
+
 /** Which track a checkbox line belongs to, or null if it's tagged with the skip tag. */
 function resolveTrackLabel(checkboxText: string, settings: ChecklistProgressSettings): string | null {
 	if (tagRegex(settings.skipTag).test(checkboxText)) return null;
@@ -256,10 +322,12 @@ function countRange(
 	lines: string[],
 	from: number,
 	to: number,
-	settings: ChecklistProgressSettings
+	settings: ChecklistProgressSettings,
+	inFence: boolean[]
 ): Map<string, TrackCount> {
 	const counts = new Map<string, TrackCount>();
 	for (let i = from; i < to && i < lines.length; i++) {
+		if (inFence[i]) continue;
 		const cb = CHECKBOX_RE.exec(lines[i]);
 		if (!cb) continue;
 		const label = resolveTrackLabel(cb[4], settings);
@@ -307,19 +375,23 @@ export function colorIndexForLabel(label: string, settings: ChecklistProgressSet
  */
 export function parseFile(text: string, settings: ChecklistProgressSettings): SectionProgress[] {
 	const lines = text.split("\n");
-	const sections = findSections(lines);
+	const inFence = computeFenceMask(lines);
+	const sections = findSections(lines, inFence);
 	const result: SectionProgress[] = [];
 
 	for (const sec of sections) {
-		const flat = countRange(lines, sec.start, sec.end, settings);
+		const flat = countRange(lines, sec.start, sec.end, settings, inFence);
 		// Only pay for the second pass when the section actually has children.
 		const rollup =
-			sec.rollupEnd === sec.end ? flat : countRange(lines, sec.start, sec.rollupEnd, settings);
+			sec.rollupEnd === sec.end
+				? flat
+				: countRange(lines, sec.start, sec.rollupEnd, settings, inFence);
 
 		// Placeholders are discovered in the section's own body, so a placeholder
 		// under a subsection belongs to that subsection, not to its parent.
 		const bars: BarSpec[] = [];
 		for (let i = sec.start; i < sec.end && i < lines.length; i++) {
+			if (inFence[i]) continue;
 			const ph = PLACEHOLDER_RE.exec(lines[i]);
 			if (!ph) continue;
 			const label = ph[1].trim();

@@ -1,6 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import type ChecklistProgressPlugin from "./main";
-import { TrackConfig } from "./core";
+import { TrackConfig, getTrackConfigWarnings } from "./core";
 
 export class ChecklistSettingTab extends PluginSettingTab {
 	plugin: ChecklistProgressPlugin;
@@ -22,6 +22,14 @@ export class ChecklistSettingTab extends PluginSettingTab {
 				"render as a live progress bar, computed from the checkboxes under that heading.",
 		});
 
+		const warningsEl = containerEl.createDiv({ cls: "cpt-settings-warnings" });
+		const refreshWarnings = (): void => {
+			warningsEl.empty();
+			for (const w of getTrackConfigWarnings(this.plugin.settings)) {
+				warningsEl.createEl("p", { cls: "cpt-settings-warning", text: "⚠ " + w });
+			}
+		};
+
 		new Setting(containerEl)
 			.setName("Default track label")
 			.setDesc(
@@ -34,6 +42,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.defaultTrackLabel = value.trim() || "Main";
 						await this.plugin.saveSettings();
+						refreshWarnings();
 					})
 			);
 
@@ -46,6 +55,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 				text.setValue(this.plugin.settings.skipTag).onChange(async (value) => {
 					this.plugin.settings.skipTag = (value.trim() || "skip").replace(/^#/, "");
 					await this.plugin.saveSettings();
+					refreshWarnings();
 				})
 			);
 
@@ -66,6 +76,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 						.onChange(async (value) => {
 							track.label = value;
 							await this.plugin.saveSettings();
+							refreshWarnings();
 						})
 				)
 				.addText((text) =>
@@ -75,6 +86,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 						.onChange(async (value) => {
 							track.tag = value.replace(/^#/, "").trim();
 							await this.plugin.saveSettings();
+							refreshWarnings();
 						})
 				)
 				.addExtraButton((btn) =>
@@ -101,5 +113,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 					this.display();
 				})
 		);
+
+		refreshWarnings();
 	}
 }
