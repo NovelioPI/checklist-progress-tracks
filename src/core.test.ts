@@ -32,9 +32,10 @@ describe("parseFile", () => {
 	it("routes tagged checkboxes to their configured track", () => {
 		const text = ["# Heading", "- [x] task #b", "- [ ] task"].join("\n");
 		const sections = parseFile(text, settings());
-		const byLabel = Object.fromEntries(sections[0].tracks.map((t) => [t.label, t]));
-		expect(byLabel["Track B"]).toEqual({ label: "Track B", checked: 1, total: 1 });
-		expect(byLabel["Main"]).toEqual({ label: "Main", checked: 0, total: 1 });
+		const trackB = sections[0].tracks.find((t) => t.label === "Track B");
+		const main = sections[0].tracks.find((t) => t.label === "Main");
+		expect(trackB).toEqual({ label: "Track B", checked: 1, total: 1 });
+		expect(main).toEqual({ label: "Main", checked: 0, total: 1 });
 	});
 
 	it("excludes checkboxes tagged with the skip tag entirely", () => {
