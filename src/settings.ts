@@ -14,7 +14,6 @@ export class ChecklistSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 
-		containerEl.createEl("h2", { text: "Checklist Progress Tracks" });
 		containerEl.createEl("p", {
 			text:
 				"Works on any note with headings (any level: #, ##, ###, etc.), for any project or " +
@@ -59,7 +58,7 @@ export class ChecklistSettingTab extends PluginSettingTab {
 				})
 			);
 
-		containerEl.createEl("h3", { text: "Custom tracks" });
+		new Setting(containerEl).setName("Custom tracks").setHeading();
 		containerEl.createEl("p", {
 			text:
 				"Each row adds a track: a checkbox tagged #<tag> counts toward the track with the matching " +

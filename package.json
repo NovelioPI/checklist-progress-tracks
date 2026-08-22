@@ -1,16 +1,16 @@
 {
-  "name": "readiness-progress-plugin",
+  "name": "checklist-progress-tracks",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Turns tagged checkboxes under headings into visual multi-track progress bars for Obsidian.",
+  "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc --noEmit --skipLibCheck && node esbuild.config.mjs production",
     "test": "vitest run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["obsidian", "obsidian-plugin"],
+  "author": "noveliopi",
+  "license": "MIT",
   "dependencies": {
     "@codemirror/language": "^6.12.4",
     "@codemirror/state": "^6.7.1",
