@@ -35,6 +35,13 @@ jobs:
       - run: |
           NOTES="Turns tagged checkboxes under headings into visual multi-track progress bars for Obsidian.
 
+          ## Key features
+          - Live progress bars: add a \"<Label>: [!progress_bar]\" line under any heading and it renders inline, computed from the checkboxes below it
+          - Multi-track support: route checkboxes to different tracks with #tags, configurable per vault in settings
+          - Skip tag to exclude specific checkboxes from every track's totals
+          - Dashboard view aggregating progress bars across the whole vault, with click-through to the source note
+          - Works in both Reading view and Live Preview
+
           main.js and styles.css are built by this workflow and carry verifiable build provenance attestations (Sigstore/SLSA). See the tag message below for what changed in this release."
 
           gh release create "${GITHUB_REF_NAME}" \
